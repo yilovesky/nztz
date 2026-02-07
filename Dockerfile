@@ -14,6 +14,7 @@ RUN echo 'server { \
 
 # 2. 下载哪吒探针二进制文件
 WORKDIR /app
+# 使用代理确保 GitHub Actions 下载稳定
 RUN curl -L -f "https://gh-proxy.com/https://github.com/nezhahq/agent/releases/download/v1.15.0/nezha-agent_linux_amd64.zip" -o nezha.zip && \
     unzip nezha.zip && \
     chmod +x nezha-agent && \
@@ -24,9 +25,9 @@ ENV NZ_SERVER=nz.117.de5.net:443 \
     NZ_TLS=true \
     NZ_CLIENT_SECRET=p3joFK1jc3Z31YXqMXfNPvjjxx1lQknL
 
-# 4. 暴露跳转服务的 80 端口
+# 4. 暴露跳转端口
 EXPOSE 80
 
-# 5. 启动命令 (修正版：直接使用命令行参数启动)
-# 根据 v1.15.0 帮助文档，直接传递参数是最稳妥的启动方式
-CMD ["sh", "-c", "nginx && ./nezha-agent --server ${NZ_SERVER} --password ${NZ_CLIENT_SECRET} --tls"]
+# 5. 启动命令 (严格遵循 v1.15.0 指令模式)
+# 必须先执行 service 命令，其子命令为 run，参数必须用双横线 --
+CMD ["sh", "-c", "nginx && ./nezha-agent service run --server ${NZ_SERVER} --password ${NZ_CLIENT_SECRET} --tls"]
