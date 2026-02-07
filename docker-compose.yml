@@ -1,13 +1,9 @@
 version: '3.8'
-
 services:
-  nezha-service:
+  nztz-client:
     build: .
     container_name: nezha-agent-web
     restart: always
-    # 如果你想自动识别所有端口且不冲突，使用 host 模式
-    # network_mode: "host" 
-    # 如果你想指定 80 端口跳转，使用下面的 ports
     ports:
       - "80:80"
     environment:
