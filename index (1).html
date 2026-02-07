@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iOS 26 Monitor Pro</title>
+    <style>
+        :root { --bg: #F2F2F7; --card: rgba(255, 255, 255, 0.85); --accent: #007AFF; }
+        body { 
+            background: var(--bg); color: #000; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 0; box-sizing: border-box; 
+        }
+
+        /* 顶部状态栏 */
+        .status-bar { 
+            width: 100%; height: 44px; display: flex; justify-content: space-between; 
+            align-items: center; padding: 0 20px; box-sizing: border-box; font-size: 14px; font-weight: 600; 
+        }
+
+        /* 时间与日期区 */
+        .header { width: 100%; padding: 20px 30px; box-sizing: border-box; text-align: left; }
+        #clock { font-size: 84px; font-weight: 200; letter-spacing: -3px; line-height: 1; margin-bottom: 5px; }
+        #date { font-size: 18px; color: #8E8E93; font-weight: 500; }
+
+        /* 中心大图标（国旗） */
+        .main-flag { font-size: 180px; margin: 20px 0; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); }
+
+        /* 监控格栅 */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 90%; max-width: 500px; margin-bottom: 100px; }
+        .card { 
+            background: var(--card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+        .city { font-size: 13px; font-weight: 700; color: #8E8E93; margin-bottom: 5px; }
+        .temp { font-size: 32px; font-weight: 300; }
+        .desc { font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 5px; }
+
+        /* 底部导航栏 */
+        .tab-bar { 
+            position: fixed; bottom: 0; width: 100%; height: 83px; 
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding-top: 10px;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; color: #8E8E93; font-size: 10px; }
+        .tab-item.active { color: var(--accent); }
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span id="st-time">10:26</span>
+        <span>Signal 📶</span>
+    </div>
+
+    <div class="header">
+        <div id="clock">10:26</div>
+        <div id="date">2026年1月23日 (北京时间)</div>
+    </div>
+
+    <div class="main-flag">🇺🇸</div>
+
+    <div class="grid">
+        <div class="card"><div class="city">长沙</div><div id="t1" class="temp">--°</div><div id="d1" class="desc">获取中</div></div>
+        <div class="card"><div class="city">株洲</div><div id="t2" class="temp">--°</div><div id="d2" class="desc">获取中</div></div>
+        <div class="card"><div class="city">湘潭</div><div id="t3" class="temp">--°</div><div id="d3" class="desc">获取中</div></div>
+        <div class="card"><div class="city">岳阳</div><div id="t4" class="temp">--°</div><div id="d4" class="desc">获取中</div></div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">🏠</div>监控中心</div>
+        <div class="tab-item"><div class="tab-icon">🌍</div>节点列表</div>
+        <div class="tab-item"><div class="tab-icon">⚙️</div>系统设置</div>
+    </div>
+
+    <script>
+        // 1. 强制中国时间逻辑
+        function updateTime() {
+            const now = new Date();
+            // 转换为北京时间
+            const bjTime = new Date(now.getTime() + (now.getTimezoneOffset() + 480) * 60000);
+            
+            const h = String(bjTime.getHours()).padStart(2, '0');
+            const m = String(bjTime.getMinutes()).padStart(2, '0');
+            const timeStr = `${h}:${m}`;
+            
+            document.getElementById('clock').innerText = timeStr;
+            document.getElementById('st-time').innerText = timeStr;
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('date').innerText = bjTime.toLocaleDateString('zh-CN', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 2. 天气获取逻辑 (wttr.in 接口)
+        async function getW(cityText, idx) {
+            const t = document.getElementById('t'+idx), d = document.getElementById('d'+idx);
+            try {
+                const res = await fetch(`https://wttr.in/${cityText}?format=%t+%C`);
+                const text = await res.text();
+                const parts = text.split(' ');
+                t.innerText = parts[0];
+                d.innerText = parts[1] || '晴';
+            } catch(e) { d.innerText = 'OFFLINE'; }
+        }
+
+        const cities = ["Changsha", "Zhuzhou", "Xiangtan", "Yueyang"];
+        cities.forEach((name, i) => getW(name, i + 1));
+    </script>
+</body>
+</html>
