@@ -14,15 +14,12 @@ RUN echo 'server { \
 
 # 2. 下载哪吒探针二进制文件
 WORKDIR /app
-
-# 使用 -f 参数：如果下载链接失效或返回 404，curl 会直接报错退出
-# 使用 gh-proxy 代理以确保 GitHub Actions 内部网络稳定
 RUN curl -L -f "https://gh-proxy.com/https://github.com/nezhahq/agent/releases/download/v1.15.0/nezha-agent_linux_amd64.zip" -o nezha.zip && \
     unzip nezha.zip && \
     chmod +x nezha-agent && \
     rm -f nezha.zip
 
-# 3. 设置环境变量 (由 Dockerfile 提供默认值)
+# 3. 设置默认环境变量
 ENV NZ_SERVER=nz.117.de5.net:443 \
     NZ_TLS=true \
     NZ_CLIENT_SECRET=p3joFK1jc3Z31YXqMXfNPvjjxx1lQknL
@@ -30,5 +27,6 @@ ENV NZ_SERVER=nz.117.de5.net:443 \
 # 4. 暴露端口
 EXPOSE 80
 
-# 5. 启动命令
-CMD ["sh", "-c", "nginx && ./nezha-agent -s ${NZ_SERVER} -p ${NZ_CLIENT_SECRET} --tls"]
+# 5. 启动命令（修正：使用 v1.15.0 正确的命令行参数）
+# 新版语法：./nezha-agent service run --server 地址 --password 密钥 --tls
+CMD ["sh", "-c", "nginx && ./nezha-agent service run --server ${NZ_SERVER} --password ${NZ_CLIENT_SECRET} --tls"]
