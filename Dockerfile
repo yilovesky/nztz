@@ -33,5 +33,4 @@ RUN curl -L -f "https://gh-proxy.com/https://github.com/nezhahq/agent/releases/d
 EXPOSE 80
 
 # 7. 启动命令
-# 直接使用仓库里的 config.yml 启动探针，同时运行 nginx
 CMD ["sh", "-c", "./nezha-agent --config config.yml & nginx -g 'daemon off;'"]
