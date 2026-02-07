@@ -1,11 +1,9 @@
-# 使用轻量级的 Nginx 镜像作为基础
 FROM nginx:alpine
 
-# 安装 curl 用于下载探针
+# 安装依赖
 RUN apk add --no-cache curl ca-certificates
 
-# 1. 配置 Nginx 自动跳转
-# 创建一个简单的重定向配置
+# 设置 Nginx 自动跳转到你的面板
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -13,15 +11,19 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# 2. 准备哪吒探针脚本
-WORKDIR /app
+# 哪吒探针配置 (默认值，运行阶段可覆盖)
 ENV NZ_SERVER=nz.117.de5.net:443 \
     NZ_TLS=true \
     NZ_CLIENT_SECRET=p3joFK1jc3Z31YXqMXfNPvjjxx1lQknL
 
+WORKDIR /app
+
+# 下载安装脚本
 RUN curl -L https://raw.githubusercontent.com/nezhahq/scripts/main/agent/install.sh -o agent.sh && \
     chmod +x agent.sh
 
-# 3. 启动脚本：同时启动 Nginx 和 哪吒探针
-# 注意：使用 sh -c 运行多个命令，nginx 以后台模式运行，agent.sh 在前台运行
-CMD nginx && sh ./agent.sh
+# 暴露端口
+EXPOSE 80
+
+# 启动命令：后台运行 Nginx，前台运行探针
+CMD ["sh", "-c", "nginx && ./agent.sh"]
