@@ -6,13 +6,14 @@ RUN apk add --no-cache curl ca-certificates nginx unzip
 # 1. 准备目录
 RUN mkdir -p /run/nginx /var/www/localhost/html /app
 
-# 2. 调用仓库中的文件 (index.html 和 config.yml)
+# 2. 调用仓库中的所有配置文件
 COPY index.html /var/www/localhost/html/index.html
 COPY config.yml /app/config.yml
+COPY ports.conf /etc/nginx/http.d/ports.conf
 
-# 3. 编写 Nginx 模板 (注意：这里我们用了一个占位符 MY_PORT)
+# 3. 配置 Nginx 主逻辑 (通过 include 调用你定义的端口文件)
 RUN printf "server { \n\
-    listen MY_PORT; \n\
+    include /etc/nginx/http.d/ports.conf; \n\
     server_name _; \n\
     root /var/www/localhost/html; \n\
     index index.html; \n\
@@ -28,9 +29,8 @@ RUN curl -L -f "https://gh-proxy.com/https://github.com/nezhahq/agent/releases/d
     chmod +x nezha-agent && \
     rm -f nezha.zip
 
-# 5. 设置默认环境变量 (如果平台没给端口，默认用 80)
-ENV PORT=80
+# 5. 声明多个可能用到的端口
+EXPOSE 5000 3000 8080 80
 
-# 6. 启动命令：在启动瞬间把配置里的 MY_PORT 替换为平台实际的 $PORT
-CMD ["sh", "-c", "sed -i \"s/MY_PORT/${PORT}/g\" /etc/nginx/http.d/default.conf && \
-    ./nezha-agent --config config.yml & nginx -g 'daemon off;'"]
+# 6. 启动命令
+CMD ["sh", "-c", "./nezha-agent --config config.yml & nginx -g 'daemon off;'"]
