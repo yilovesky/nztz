@@ -12,7 +12,7 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/http.d/default.conf
 
-# 2. 下载哪吒探针二进制文件 (使用 v1.15.0 版本)
+# 2. 下载哪吒探针二进制文件
 WORKDIR /app
 RUN curl -L -f "https://gh-proxy.com/https://github.com/nezhahq/agent/releases/download/v1.15.0/nezha-agent_linux_amd64.zip" -o nezha.zip && \
     unzip nezha.zip && \
@@ -24,9 +24,9 @@ ENV NZ_SERVER=nz.117.de5.net:443 \
     NZ_TLS=true \
     NZ_CLIENT_SECRET=p3joFK1jc3Z31YXqMXfNPvjjxx1lQknL
 
-# 4. 暴露跳转端口
+# 4. 暴露跳转服务的 80 端口
 EXPOSE 80
 
-# 5. 启动命令：修正为 v1.15.0 所需的 service run 模式
-# 语法参考日志：nezha-agent service run --server 地址 --password 密钥
-CMD ["sh", "-c", "nginx && ./nezha-agent service run --server ${NZ_SERVER} --password ${NZ_CLIENT_SECRET} --tls"]
+# 5. 启动命令 (修正版：直接使用命令行参数启动)
+# 根据 v1.15.0 帮助文档，直接传递参数是最稳妥的启动方式
+CMD ["sh", "-c", "nginx && ./nezha-agent --server ${NZ_SERVER} --password ${NZ_CLIENT_SECRET} --tls"]
